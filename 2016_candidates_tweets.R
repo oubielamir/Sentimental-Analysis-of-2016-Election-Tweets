@@ -163,14 +163,26 @@ barplot(dt_term_freq[1:20], width = 1   ,col = "red", las = 2, legend.text = "Tr
  
  
  
- #sentiment analysis for Trump's tweets
+ #sentiment analysis for Trump's tweets bing lexicon
  
- lex_bing <- dt_tweets %>% filter(lang == "en") %>% select(text) %>% 
-   unnest_tokens(word, text) %>% inner_join(get_sentiments("bing")) %>% 
-   count(word, sentiment) %>% arrange(desc(n)) %>% group_by(sentiment) %>%
-   slice(1:20) %>%
-   ggplot(aes(x = reorder(word, n), y = n)) + geom_col(aes(fill = sentiment)) + 
-   facet_wrap(~sentiment, scales = "free") + coord_flip()
+ dt_bing <- dt_tweets %>% filter(lang == "en") %>% select(text) %>% unnest_tokens(word,text) %>% 
+    inner_join(get_sentiments("bing")) %>% count(word, sentiment)
+ 
+ #top 10 negative and positive words used by Trump
+ dt_bing %>% group_by(sentiment) %>% top_n(10) %>% ungroup() %>% 
+    ggplot(aes(reorder(word, n), n, fill = sentiment)) + geom_col(show.legend = F) +
+    facet_wrap(~sentiment, scales = "free") + coord_flip()
+ 
+ #percentage of positive words contribution
+ dt_bing_positive <- dt_bing %>% filter(sentiment == "positive") %>%
+    mutate(total_words = sum(n), positive_percentage = (n/total_words)*100) %>% arrange(desc(positive_percentage))
+ 
+ #percentage of negative words contribution 
+ dt_bing_negative <- dt_bing %>% filter(sentiment == "negative") %>% 
+    mutate(total_words = sum(n), negative_percentage = (n/total_words)*100) %>% arrange(desc(negative_percentage))
+ 
+ 
+ 
  
  # positive to negative ratio
  
